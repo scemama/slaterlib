@@ -1,2 +1,5 @@
-# slaterlib
-Slater-Condon's rules in a C library
+# SlaterLib
+
+Slater-Condon's rules in a C library.
+
+
