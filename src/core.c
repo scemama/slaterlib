@@ -31,10 +31,10 @@ exc_number_t get_holes(bucket_t N_int,
 {
   exc_number_t    n_holes;
   bucket_t        i;
-  unsigned int    k;
-  unsigned int    shift;
-  unsigned int    pos;
+  orbital_t       shift;
   determinant_t   tmp;
+  unsigned int    k;
+  unsigned int    pos;
 
   k = 0;
   shift = ORBITAL_SHIFT;
@@ -46,13 +46,11 @@ exc_number_t get_holes(bucket_t N_int,
       while (tmp != (determinant_t) 0) 
       {
           pos = trailz(tmp);
-          holes[k] = (orbital_t) (pos + shift);
+          holes[k] = ( (orbital_t) pos) + shift;
           tmp ^= ( ((determinant_t) 1) << pos);
           k++;
-
       }
-      shift += (unsigned int) (8*sizeof(determinant_t));
-
+      shift += NORB_PER_INT;
   }
   n_holes = (exc_number_t) k;
   return n_holes;
@@ -70,10 +68,10 @@ exc_number_t get_particles(bucket_t N_int,
 {
   exc_number_t    n_particles;
   bucket_t        i;
-  unsigned int    k;
-  unsigned int    shift;
-  unsigned int    pos;
+  orbital_t       shift;
   determinant_t   tmp;
+  unsigned int    k;
+  unsigned int    pos;
 
   k = 0;
   shift = ORBITAL_SHIFT;
@@ -85,13 +83,11 @@ exc_number_t get_particles(bucket_t N_int,
       while (tmp != (determinant_t) 0) 
       {
           pos = trailz(tmp);
-          particles[k] = (orbital_t) (pos + shift);
+          particles[k] = ( (orbital_t) pos) + shift;
           tmp ^= ( ((determinant_t) 1) << pos);
           k++;
-
       }
-      shift += (unsigned int) (8*sizeof(determinant_t));
-
+      shift += NORB_PER_INT;
   }
   n_particles = (exc_number_t) k;
   return n_particles;

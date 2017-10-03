@@ -1,5 +1,9 @@
 #include "slater_condon.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <err.h>
+
+
 
 
 #define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
@@ -13,6 +17,57 @@
   (byte & 0x0002 ? '1' : '0'), \
   (byte & 0x0001 ? '1' : '0') 
 
+int test_trailz()
+{
+  unsigned int k;
+  determinant_t x;
+  int test_ok;
+
+  test_ok = 0;
+  for (k=0 ; k<NORB_PER_INT ; k++)
+  {
+    x = ((determinant_t) 1) << k;
+    if ( trailz_simple(x) != k ) test_ok = -1;
+    if ( trailz_simple(x) != trailz(x) ) {
+      test_ok = -1;
+      errx(1,"test_trailz: %llu  %u  %u\n", x, trailz_simple(x), popcnt(x));
+    }
+  }
+  x = ((determinant_t) 0);
+  if ( trailz_simple(x) != NONE ) test_ok = -1;
+  return test_ok;
+}
+
+determinant_t random_det()
+{
+  return
+    (((determinant_t) rand() <<  0) & 0x000000000000FFFFull) | 
+    (((determinant_t) rand() << 16) & 0x00000000FFFF0000ull) | 
+    (((determinant_t) rand() << 32) & 0x0000FFFF00000000ull) |
+    (((determinant_t) rand() << 48) & 0xFFFF000000000000ull);
+}
+
+int test_popcnt()
+{
+  unsigned int k;
+  determinant_t x;
+  int test_ok;
+
+  test_ok = 0;
+  for (k=0 ; k<1000000 ; k++)
+  {
+    x = random_det();
+    if ( popcnt_simple(x) != popcnt(x) ) {
+      test_ok = -1;
+      errx(1,"test_popcnt: %llu  %u  %u\n", x, popcnt_simple(x), popcnt(x));
+    }
+  }
+  return test_ok;
+}
+
+
+
+
 
 int main(int agrc, char** argv)
 {
@@ -23,6 +78,12 @@ int main(int agrc, char** argv)
    orbital_t       holes[2];
    orbital_t       particles[2];
    orbital_t       iorb;
+
+  test_trailz();
+  test_popcnt();
+    
+
+
 
   printf("NORB_PER_INT_SHIFT: %d\n", (int) NORB_PER_INT_SHIFT);
   printf("NORB_PER_INT      : %d\n", (int) NORB_PER_INT);
@@ -67,3 +128,8 @@ int main(int agrc, char** argv)
 
    return 0;
 }
+
+
+
+
+
