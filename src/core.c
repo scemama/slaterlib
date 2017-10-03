@@ -359,3 +359,33 @@ orbital_t to_orbital_list(bucket_t N_int,
 }
 
 
+
+
+
+
+
+void of_orbital_list(bucket_t N_int,
+                     orbital_t N_orb, 
+                     determinant_t d1[N_int],
+                     orbital_t list[N_orb])
+{
+  bucket_t        i;
+  orbital_t       pos, iorb;
+  unsigned int    k;
+
+  for (i=(bucket_t) 0 ; i<N_int ; i++) {
+      d1[i] = (determinant_t) 0;
+  }
+
+  for (pos=((orbital_t)0) ; pos < N_orb ; pos++)
+  {
+    iorb = list[pos] - ORBITAL_SHIFT;
+    i = (bucket_t) (iorb >> NORB_PER_INT_SHIFT );
+    k = (unsigned int) (iorb & (NORB_PER_INT - 1) );
+    d1[i] |= ((determinant_t)1) << k;
+  }
+
+}
+
+
+

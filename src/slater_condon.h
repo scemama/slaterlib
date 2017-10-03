@@ -104,6 +104,10 @@ orbital_t to_orbital_list(bucket_t N_int,
                      determinant_t d1[N_int],
                      orbital_t* list);
 
+void of_orbital_list(bucket_t N_int,
+                     orbital_t N_orb, 
+                     determinant_t d1[N_int],
+                     orbital_t list[N_orb]);
 
 /* Simple functions */
 
@@ -114,12 +118,12 @@ exc_number_t exc_degree_simple(bucket_t N_int,
                         determinant_t d1[N_int],
                         determinant_t d2[N_int]);
 
-/*
 exc_number_t get_holes_simple(bucket_t N_int,
                         determinant_t d1[N_int],
                         determinant_t d2[N_int],
                         orbital_t holes[2]);
 
+/*
 exc_number_t get_particles_simple(bucket_t N_int,
                         determinant_t d1[N_int],
                         determinant_t d2[N_int],

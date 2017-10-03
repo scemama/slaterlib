@@ -66,20 +66,73 @@ unsigned int random_int()
   return rand() & (NORB_PER_INT-1);
 }
 
-determinant_t random_det(orbital_t norb)
+determinant_t random_det(orbital_t N_orb)
 {
   unsigned int r;
   determinant_t result;
 
   result = (determinant_t) 0;
 
-  while (popcnt(result) < norb)
+  while (popcnt(result) < N_orb)
   {
     r = random_int();
     result |= ( ((determinant_t)1) << r);
   }
   return result;
 }
+
+int random_single_exc(bucket_t N_int,
+                    determinant_t d1[N_int],
+                    determinant_t d2[N_int])
+{
+  orbital_t list_occ[N_int*NORB_PER_INT];
+  orbital_t list_virt[N_int*NORB_PER_INT];
+  bucket_t k;
+  orbital_t N_orb, particle, pos;
+  unsigned int nperm;
+
+  for (k=(bucket_t)0 ; k<N_int ; k++)
+    d2[k] = ~d1[k];
+  N_orb = to_orbital_list(N_int, d2, list_virt);
+  particle = list_virt[ rand() % N_orb ];
+
+  N_orb = to_orbital_list(N_int, d1, list_occ);
+  pos  = rand() % N_orb;
+
+  list_occ[pos] = particle;
+  of_orbital_list(N_int, N_orb, d2, list_occ);
+  
+  nperm = 0;
+  while (pos < N_orb-1)
+  {
+    pos++;
+    if (list_occ[pos] < particle) nperm++;
+  }
+  return nperm;
+}
+
+int random_double_exc(bucket_t N_int,
+                    determinant_t d1[N_int],
+                    determinant_t d2[N_int])
+{
+  determinant_t d15[N_int];
+  int failed,i;
+  int nperm, nperm2;
+
+  failed = 1;
+  nperm = random_single_exc(N_int,d1,d15);
+  while (failed) {
+    nperm2 = random_single_exc(N_int,d15,d2);
+    for (i=1 ; i<N_int ; i++) {
+      if (d2[i] != d1[i]) {
+        failed = 0;
+        break;
+      }
+    }
+  }
+  return nperm + nperm2;
+}
+
 
 int test_popcnt()
 {
@@ -109,9 +162,10 @@ int main(int agrc, char** argv)
   determinant_t   d1[N_int];
   determinant_t   d2[N_int];
   exc_number_t    exc;
+  orbital_t       list[N_int*NORB_PER_INT];
   orbital_t       holes[2];
   orbital_t       particles[2];
-  orbital_t       iorb;
+  orbital_t       iorb, N_orb;
   int             i,j,k,l,m;
   unsigned int    r;
   unsigned int    itest;
@@ -124,7 +178,6 @@ int main(int agrc, char** argv)
 
   test_popcnt();
   printf("Popcnt OK\n");
-    
 /*
   for (i=0 ; i<10 ; i++)
   {
@@ -132,6 +185,7 @@ int main(int agrc, char** argv)
   }
 */
 
+  /* Test exc_degree */
   for (itest=0 ; itest<MAXTESTS ; itest++)
   {
     /* Excitation on one int */
@@ -228,14 +282,28 @@ int main(int agrc, char** argv)
   }
   printf("exc_degree OK\n");
 
+    
+  /* Test to/of_list */
+  for (itest=0 ; itest<MAXTESTS ; itest++)
+  {
+    r = random_int();
+    for (l=0 ; l<N_int ; l++)
+      d1[l] = random_det(r);
+    N_orb = to_orbital_list(N_int, d1, list);
+    of_orbital_list(N_int, N_orb, d2, list);
+    if (exc_degree(N_int, d1, d2) != 0)
+    {
+        debug_det(N_int, d1);
+        debug_det(N_int, d2);
+        errx(1,"Failure in to/of_list : %d != 0", (int) exc_degree(N_int, d1, d2) );
+    }
+  }
+  printf("to/of_list OK\n");
 
    d1[0] = 0x03ff;  
    d2[0] = 0x0cff;  
    debug_det(N_int, d1);
    debug_det(N_int, d2);
-
-   exc = exc_degree(N_int, d1, d2);
-   printf("Excitation degree: %d\n", (int) exc);
 
    exc = get_holes(N_int, d1, d2, holes);
    printf("Number of holes : %d\n", (int) exc);
