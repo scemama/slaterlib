@@ -5,7 +5,8 @@
 #define INT_SIZE      64
 
 
-#define NONE  (exc_number_t) 123456
+#define NONE   (exc_number_t) 123456
+#define MAXORB (orbital_t) 10000
 
 typedef unsigned int         bucket_t;
 typedef unsigned int         exc_number_t;
@@ -99,6 +100,9 @@ unsigned int get_nperm_double(bucket_t N_int,
                  orbital_t particle[2]);
 
 
+orbital_t to_orbital_list(bucket_t N_int,
+                     determinant_t d1[N_int],
+                     orbital_t* list);
 
 
 /* Simple functions */
@@ -106,11 +110,11 @@ unsigned int get_nperm_double(bucket_t N_int,
 unsigned int trailz_simple(determinant_t x);
 unsigned int popcnt_simple(determinant_t x);
 
-/*
 exc_number_t exc_degree_simple(bucket_t N_int,
                         determinant_t d1[N_int],
                         determinant_t d2[N_int]);
 
+/*
 exc_number_t get_holes_simple(bucket_t N_int,
                         determinant_t d1[N_int],
                         determinant_t d2[N_int],
@@ -138,6 +142,18 @@ unsigned int get_nperm_double_simple(bucket_t N_int,
                  determinant_t d2[N_int],
                  orbital_t hole[2],
                  orbital_t particle[2]);
+*/
+
+/*@
+predicate
+  ValidDeterminant (determinant_t * a, integer N_int) = 
+      \valid_read(a+(0..N_int-1)) &&
+      0 < N_int < MAXORB/NORB_PER_INT;
+predicate
+  ValidDeterminants (determinant_t * a, determinant_t * b, integer N_int) =
+      \valid_read(a+(0..N_int-1)) &&
+      \valid_read(b+(0..N_int-1)) &&
+      0 < N_int < (MAXORB/NORB_PER_INT);
 */
 
 #endif

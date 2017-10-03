@@ -3,19 +3,39 @@
 #include <stdlib.h>
 #include <err.h>
 
+#define MAXTESTS 10000
+
+void debug_det(bucket_t N_int, determinant_t d[N_int])
+{
+  orbital_t list[N_int * NORB_PER_INT];
+  orbital_t k;
+  bucket_t  l;
+  unsigned int nmax;
+
+  
+  to_orbital_list(N_int, d, list);
+
+  nmax = 0;
+  for (l=0 ; l<N_int ; l++)
+  {
+    nmax += popcnt(d[l]);
+    for (k=0 ; k<NORB_PER_INT ; k++)
+    {
+      if ( (d[l] & ((determinant_t)1) << k) == 0 )
+        printf("0");
+      else
+        printf("1");
+    }
+    printf(" ");
+  }
+  printf(":\n");
+  for (k=0 ; k<nmax; k++)
+    printf("%d ",list[k]);
+  printf("\n");
+}
 
 
 
-#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
-#define BYTE_TO_BINARY(byte)  \
-  (byte & 0x0080 ? '1' : '0'), \
-  (byte & 0x0040 ? '1' : '0'), \
-  (byte & 0x0020 ? '1' : '0'), \
-  (byte & 0x0010 ? '1' : '0'), \
-  (byte & 0x0008 ? '1' : '0'), \
-  (byte & 0x0004 ? '1' : '0'), \
-  (byte & 0x0002 ? '1' : '0'), \
-  (byte & 0x0001 ? '1' : '0') 
 
 int test_trailz()
 {
@@ -38,13 +58,27 @@ int test_trailz()
   return test_ok;
 }
 
-determinant_t random_det()
+
+
+
+unsigned int random_int()
 {
-  return
-    (((determinant_t) rand() <<  0) & 0x000000000000FFFFull) | 
-    (((determinant_t) rand() << 16) & 0x00000000FFFF0000ull) | 
-    (((determinant_t) rand() << 32) & 0x0000FFFF00000000ull) |
-    (((determinant_t) rand() << 48) & 0xFFFF000000000000ull);
+  return rand() & (NORB_PER_INT-1);
+}
+
+determinant_t random_det(orbital_t norb)
+{
+  unsigned int r;
+  determinant_t result;
+
+  result = (determinant_t) 0;
+
+  while (popcnt(result) < norb)
+  {
+    r = random_int();
+    result |= ( ((determinant_t)1) << r);
+  }
+  return result;
 }
 
 int test_popcnt()
@@ -54,9 +88,9 @@ int test_popcnt()
   int test_ok;
 
   test_ok = 0;
-  for (k=0 ; k<1000000 ; k++)
+  for (k=0 ; k<MAXTESTS ; k++)
   {
-    x = random_det();
+    x = random_det( (orbital_t) (rand() & (NORB_PER_INT-1)));
     if ( popcnt_simple(x) != popcnt(x) ) {
       test_ok = -1;
       errx(1,"test_popcnt: %llu  %u  %u\n", x, popcnt_simple(x), popcnt(x));
@@ -71,27 +105,134 @@ int test_popcnt()
 
 int main(int agrc, char** argv)
 {
-   bucket_t        N_int = (bucket_t) 1;
-   determinant_t   d1[1];
-   determinant_t   d2[1];
-   exc_number_t    exc;
-   orbital_t       holes[2];
-   orbital_t       particles[2];
-   orbital_t       iorb;
-
-  test_trailz();
-  test_popcnt();
-    
-
-
-
+  bucket_t        N_int = (bucket_t) 4;
+  determinant_t   d1[N_int];
+  determinant_t   d2[N_int];
+  exc_number_t    exc;
+  orbital_t       holes[2];
+  orbital_t       particles[2];
+  orbital_t       iorb;
+  int             i,j,k,l,m;
+  unsigned int    r;
+  unsigned int    itest;
+   
   printf("NORB_PER_INT_SHIFT: %d\n", (int) NORB_PER_INT_SHIFT);
   printf("NORB_PER_INT      : %d\n", (int) NORB_PER_INT);
 
+  test_trailz();
+  printf("Trailz OK\n");
+
+  test_popcnt();
+  printf("Popcnt OK\n");
+    
+/*
+  for (i=0 ; i<10 ; i++)
+  {
+    d1[0] = random_det(12);
+  }
+*/
+
+  for (itest=0 ; itest<MAXTESTS ; itest++)
+  {
+    /* Excitation on one int */
+    for (k=0 ; k<N_int ; k++)
+    {
+      r = random_int();
+      for (l=0 ; l<N_int ; l++)
+        d1[l] = (determinant_t)0;
+      d1[k] = random_det(r);
+      for (j=0 ; j<N_int ; j++)
+      {
+        for (l=0 ; l<N_int ; l++) 
+          d2[l] = (determinant_t)0;
+        d2[j] = random_det(r);
+        if (exc_degree(N_int, d1, d2) != exc_degree_simple(N_int, d1, d2))
+        {
+          debug_det(N_int, d1);
+          debug_det(N_int, d2);
+          errx(1,"Failure in exc_degree on same int : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
+        }
+      }
+    }
+
+    /* Excitation on two ints */
+    for (k=0 ; k<N_int-1 ; k++)
+    {
+      r = random_int();
+      for (l=0 ; l<N_int ; l++)
+        d1[l] = (determinant_t)0;
+      d1[k] = random_det(r);
+      for (j=k+1 ; j<N_int ; j++)
+      {
+        for (l=k+1 ; l<N_int ; l++) 
+          d1[l] = (determinant_t)0;
+        d1[j] = random_det(r/2);
+        for (m=0 ; m<N_int-1 ; m++)
+        {
+          for (l=0 ; l<N_int ; l++)
+            d2[l] = (determinant_t)0;
+          d2[m] = random_det(r);
+          for (i=m+1 ; i<N_int ; i++)
+          {
+            for (l=m+1 ; l<N_int ; l++) 
+              d2[l] = (determinant_t)0;
+            d2[i] = random_det(r/2);
+            if (exc_degree(N_int, d1, d2) != exc_degree_simple(N_int, d1, d2))
+            {
+              debug_det(N_int, d1);
+              debug_det(N_int, d2);
+              errx(1,"Failure in exc_degree on 2 ints : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
+            }
+          }
+        }
+      }
+    }
+
+    /* Excitation on three ints */
+    for (k=0 ; k<N_int ; k++)
+    {
+      r = random_int();
+      for (l=0 ; l<N_int ; l++)
+        d1[l] = random_det(r);
+      d1[k] = (determinant_t)0;
+      for (j=0 ; j<N_int ; j++)
+      {
+        for (l=0 ; l<N_int ; l++) 
+          d2[l] = random_det(r);
+        d2[j] = (determinant_t)0;
+        if (exc_degree(N_int, d1, d2) != exc_degree_simple(N_int, d1, d2))
+        {
+          debug_det(N_int, d1);
+          debug_det(N_int, d2);
+          errx(1,"Failure in exc_degree on 3 ints : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
+        }
+      }
+    }
+
+    /* Excitation on four ints */
+    for (k=0 ; k<N_int ; k++)
+    {
+      r = random_int();
+      for (l=0 ; l<N_int ; l++) {
+        d1[l] = random_det(r);
+        d2[l] = random_det(r);
+      }
+      if (exc_degree(N_int, d1, d2) != exc_degree_simple(N_int, d1, d2))
+      {
+        debug_det(N_int, d1);
+        debug_det(N_int, d2);
+        errx(1,"Failure in exc_degree on 3 ints : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
+      }
+    }
+
+  }
+  printf("exc_degree OK\n");
 
 
    d1[0] = 0x03ff;  
    d2[0] = 0x0cff;  
+   debug_det(N_int, d1);
+   debug_det(N_int, d2);
 
    exc = exc_degree(N_int, d1, d2);
    printf("Excitation degree: %d\n", (int) exc);

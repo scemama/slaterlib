@@ -4,23 +4,27 @@ CC=gcc
 
 DEBUG_FLAGS=-Wall -Werror
 
-CFLAGS=-g -fPIC $(DEBUG_FLAGS)
+CFLAGS=-g -fPIC $(DEBUG_FLAGS) -O2 -mavx
 
 OBJ=core.o simple.o
 
 
-libslater.so: $(OBJ)
+libslater.so: $(OBJ) 
 	$(CC) $(CFLAGS) *.o -fPIC -shared -Wl,-soname,libslater.so.1 -o libslater.so.$(VERSION) -lc
 	rm -f libslater.so ; ln -s libslater.so.$(VERSION) libslater.so
 	rm -f libslater.so.1 ; ln -s libslater.so.$(VERSION) libslater.so.1
 
-%.o: %.c slater_condon.h
+%.o: %.c slater_condon.h tags
 	$(CC) $(CFLAGS) $< -c
 
 test: test.c libslater.so
 	$(CC) $(CFLAGS) test.c -lslater -L. -o test -Wl,-rpath=.
 
-.PHONY: clean
+.PHONY: clean tags
 
 clean: 
 	rm -f libslater.so* *.o
+
+tags: 
+	ctags *.c *.h
+
