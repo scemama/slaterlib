@@ -2,7 +2,7 @@
 #include <string.h>
 #include <assert.h>
 
-#define MAXTESTS 1000
+#define MAXTESTS 100000
 
 
 
@@ -38,7 +38,7 @@ unsigned int random_single_exc(bucket_t N_int,
   orbital_t list_occ[N_int*NORB_PER_INT];
   orbital_t list_virt[N_int*NORB_PER_INT];
   bucket_t k;
-  orbital_t N_orb, particle, pos, pos_particle;
+  orbital_t N_orb, particle, pos, pos_particle, hole;
   unsigned int nperm;
 
   for (k=(bucket_t)0 ; k<N_int ; k++)
@@ -58,14 +58,21 @@ unsigned int random_single_exc(bucket_t N_int,
 
   assert(pos != pos_particle);
 
+  hole = list_occ[pos];
   list_occ[pos] = particle;
   of_orbital_list(N_int, N_orb, d2, list_occ);
   
   nperm = 0;
-  while (pos < N_orb-1)
-  {
-    pos++;
-    if (list_occ[pos] < particle) nperm++;
+  if (particle > hole) {
+    while (pos < N_orb-1) {
+      pos++;
+      if (list_occ[pos] < particle) nperm++;
+    }
+  } else {
+    while (pos > 0) {
+      pos--;
+      if (list_occ[pos] > particle) nperm++;
+    }
   }
   return nperm;
 }
@@ -305,6 +312,7 @@ int test_get_holes_particles(bucket_t N_int)
 
     /* Single excitations */
     random_single_exc(N_int,d1,d2);
+
     exc = get_holes(N_int, d1, d2, holes);
     if (exc != 1)
     {
@@ -314,6 +322,7 @@ int test_get_holes_particles(bucket_t N_int)
         itest = MAXTESTS;
         err(1,"Failure in random_single_exc: %d", (int) exc_degree(N_int, d1, d2) );
     }
+
     exc2 = get_holes_simple(N_int, d1, d2, holes2);
     if ( (exc2 != exc) || (holes[0] != holes2[0]) )
     {
@@ -323,6 +332,7 @@ int test_get_holes_particles(bucket_t N_int)
         itest = MAXTESTS;
         err(1,"Failure in get_holes: %d %d", (int) holes[0], (int) holes2[0]);
     }
+
     exc2 = get_particles(N_int, d1, d2, particles);
     if (exc2 != exc)
     {
@@ -332,6 +342,7 @@ int test_get_holes_particles(bucket_t N_int)
         itest = MAXTESTS;
         err(1,"Failure in get_particles: %d", (int) exc_degree(N_int, d1, d2) );
     }
+
     exc2 = get_particles_simple(N_int, d1, d2, particles2);
     if ( (exc2 != exc) || (particles[0] != particles2[0]) )
     {
@@ -342,12 +353,24 @@ int test_get_holes_particles(bucket_t N_int)
         err(1,"Failure in get_particles: %d, %d=%d", (int) exc, (int) particles[0], (int) particles2[0]);
     }
 
+    exc2 = get_holes_particles(N_int,d1,d2,holes2,particles2);
+    if ( (exc2 != exc) || (particles[0] != particles2[0]) || (holes[0] != holes2[0]) )
+    {
+        debug_det(N_int, d1);
+        debug_det(N_int, d2);
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in get_holes_particles: %d, %d=%d %d=%d", (int) exc,
+          (int) holes[0], (int) holes2[0], (int) particles[0], (int) particles2[0]);
+    }
+
 
     /* Double excitations */
     while (exc == 1) {
       random_double_exc(N_int,d1,d2);
       exc = get_holes(N_int, d1, d2, holes);
     }
+
     if ( (exc != 2) )
     {
         debug_det(N_int, d1);
@@ -356,6 +379,7 @@ int test_get_holes_particles(bucket_t N_int)
         itest = MAXTESTS;
         err(1,"Failure in random_double_exc: %d", (int) exc_degree(N_int, d1, d2) );
     }
+
     exc2 = get_holes_simple(N_int, d1, d2, holes2);
     if ( (exc2 != exc) || (holes[0] != holes2[0]) || (holes[1] != holes2[1]) ) 
     {
@@ -366,6 +390,7 @@ int test_get_holes_particles(bucket_t N_int)
         err(1,"Failure in get_holes: %d, %d=%d, %d=%d", (int) exc2, 
           (int) holes[0], (int) holes2[0], (int) holes[1], (int) holes2[1]);
     }
+
     exc2 = get_particles(N_int, d1, d2, particles);
     if ( (exc2 != exc) )
     {
@@ -375,6 +400,7 @@ int test_get_holes_particles(bucket_t N_int)
         itest = MAXTESTS;
         err(1,"Failure in get_particles: %d", (int) exc_degree(N_int, d1, d2));
     }
+
     exc2 = get_particles_simple(N_int, d1, d2, particles2);
     if ( (exc2 != exc) || (particles[0] != particles2[0]) || (particles[1] != particles2[1]) ) 
     {
@@ -385,17 +411,71 @@ int test_get_holes_particles(bucket_t N_int)
         err(1,"Failure in get_particles: %d,  %d=%d %d=%d", (int) exc2, 
           (int) particles[0], (int) particles2[0], (int) particles[1], (int) particles2[1]);
     }
+
+    exc2 = get_holes_particles(N_int,d1,d2,holes2,particles2);
+    if ( (exc2 != exc) || (particles[0] != particles2[0]) || (holes[0] != holes2[0]) 
+                       || (particles[1] != particles2[1]) || (holes[1] != holes2[1]) )
+    {
+        debug_det(N_int, d1);
+        debug_det(N_int, d2);
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in get_holes_particles: %d, %d=%d %d=%d %d=%d %d=%d", (int) exc,
+          (int) holes[0], (int) holes2[0], (int) particles[0], (int) particles2[0],
+          (int) holes[1], (int) holes2[1], (int) particles[1], (int) particles2[1]);
+    }
   }
   return test_ok;
 }
 
+
+int test_nperm(bucket_t N_int)
+{
+  int test_ok;
+  unsigned int    itest;
+  determinant_t   d1[N_int];
+  determinant_t   d2[N_int];
+  orbital_t       r;
+  bucket_t        l;
+  orbital_t       holes[2], particles[2];
+  unsigned int    nperm, nperm2;
+
+  test_ok = 0;
+  for (itest=0 ; itest<MAXTESTS ; itest++)
+  {
+    r = random_int();
+    r = r < 4 ? 4 : r-2;
+    for (l=(bucket_t)0 ; l<N_int ; l++)
+      d1[l] = random_det(r);
+
+
+    /* Single excitations */
+    nperm  = random_single_exc(N_int,d1,d2);
+    get_holes_particles(N_int, d1, d2, holes, particles);
+    nperm2 = get_nperm_single(N_int, d1, d2, holes, particles);
+    if (nperm != nperm2)
+    {
+        debug_det(N_int, d1);
+        debug_det(N_int, d2);
+        test_ok = -1;
+        itest = MAXTESTS;
+        printf("%d -> %d\n",holes[0],particles[0]);
+        err(1,"Failure in n_perm_single: %d %d", (int) nperm, (int) nperm2);
+    }
+  }
+  return test_ok;
+}
+
+
 /* Main */
 
+#include <time.h>
 int main(int agrc, char** argv)
 {
   bucket_t        N_int = 4;
   int             test_ok;
 
+srand(time(NULL));
   test_ok = 0;
  
   printf("NORB_PER_INT_SHIFT: %d\n", (int) NORB_PER_INT_SHIFT);
@@ -413,6 +493,7 @@ int main(int agrc, char** argv)
   printf("exc_degree            "); TEST(exc_degree,N_int);
   printf("to/of_list            "); TEST(to_of_list,N_int);
   printf("get_holes/particles   "); TEST(get_holes_particles,N_int);
+  printf("n_perm                "); TEST(nperm,N_int);
 
   return test_ok;
 }

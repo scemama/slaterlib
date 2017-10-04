@@ -283,12 +283,12 @@ unsigned int get_nperm_single(bucket_t N_int,
 {
   orbital_t  high, low;
   bucket_t  j,k,l;
-  unsigned short m,n;
+  unsigned int m,n;
   unsigned int nperm;
   determinant_t mask[N_int];
 
   high = ( (*particle > *hole) ? *particle : *hole    ) - ORBITAL_SHIFT;
-  low  = ( (*particle > *hole) ? *hole     : *particle) - ORBITAL_SHIFT;
+  low  = ( (*particle > *hole) ? *hole     : *particle) - ORBITAL_SHIFT + 1;
 /*@ assert ORBITAL_SHIFT <= low < high <= MAXORB+ORBITAL_SHIFT; */
 
   k = (bucket_t) (high >> NORB_PER_INT_SHIFT );
@@ -297,23 +297,22 @@ unsigned int get_nperm_single(bucket_t N_int,
   j = (bucket_t) (low  >> NORB_PER_INT_SHIFT );
 /*@ assert j == low / NORB_PER_INT;  */
 
-  m = (unsigned short) (high & (NORB_PER_INT - 1) );
+  m = (unsigned int) (high & (NORB_PER_INT - 1) );
 /*@ assert m == high % NORB_PER_INT;  */
 
-  n = (unsigned short) (low  & (NORB_PER_INT - 1) );
+  n = (unsigned int) (low  & (NORB_PER_INT - 1) );
 /*@ assert n == low % NORB_PER_INT;  */
 
-/*@ assert (j<k) && (n<m); */
+/*@ assert (j<=k) ; */
 
   for (l=j ; l<k ; l++)
       mask[l] = ~((determinant_t)0);
-
-  mask[k] = ( ((determinant_t)1) << m) - ((determinant_t)1) ;
-  mask[j] &= ~(((determinant_t)1) << (n+1)) + ((determinant_t)1) ;
+  mask[k] = ( ((determinant_t)1) << m) - (determinant_t)1 ;
+  mask[j] &= ( ~(((determinant_t)1) << n) + ((determinant_t)1) );
 
   nperm = (unsigned int) 0;
   for (l=j ; l<=k ; l++)
-     nperm += popcnt( d1 & mask[l] ); 
+     nperm += popcnt( d1[l] & mask[l] ); 
 
   return nperm;
 }

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <err.h>
+#include <assert.h>
 
 #define ORBITAL_SHIFT 1
 #define INT_SIZE      64
