@@ -1,6 +1,10 @@
 #ifndef SLATER_CONDON_H
 #define SLATER_CONDON_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <err.h>
+
 #define ORBITAL_SHIFT 1
 #define INT_SIZE      64
 
@@ -123,12 +127,12 @@ exc_number_t get_holes_simple(bucket_t N_int,
                         determinant_t d2[N_int],
                         orbital_t holes[2]);
 
-/*
 exc_number_t get_particles_simple(bucket_t N_int,
                         determinant_t d1[N_int],
                         determinant_t d2[N_int],
                         orbital_t particles[2]);
 
+/*
 exc_number_t get_holes_particles_simple(bucket_t N_int,
                         determinant_t d1[N_int],
                         determinant_t d2[N_int],
@@ -147,6 +151,10 @@ unsigned int get_nperm_double_simple(bucket_t N_int,
                  orbital_t hole[2],
                  orbital_t particle[2]);
 */
+
+/* Debugging functions */
+
+void debug_det(bucket_t N_int, determinant_t d[N_int]);
 
 /*@
 predicate

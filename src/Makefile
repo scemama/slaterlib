@@ -2,7 +2,7 @@ VERSION=1.0.0
 
 CC=gcc
 
-DEBUG_FLAGS=-Wall -Werror
+DEBUG_FLAGS=-Wall -Werror 
 
 CFLAGS=-g -fPIC $(DEBUG_FLAGS) -O2 -mavx
 
