@@ -2,7 +2,7 @@
 #include <string.h>
 #include <assert.h>
 
-#define MAXTESTS 100000
+#define MAXTESTS 1000000
 
 
 
@@ -155,7 +155,7 @@ int test_exc_degree(bucket_t N_int)
   int             test_ok;
 
   test_ok = 0;
-  for (itest=0 ; itest<MAXTESTS ; itest++)
+  for (itest=0 ; itest<MAXTESTS/10 ; itest++)
   {
     /* Excitation on one int */
     for (k=0 ; k<N_int ; k++)

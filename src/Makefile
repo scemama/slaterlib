@@ -4,7 +4,7 @@ CC=gcc
 
 DEBUG_FLAGS=-Wall -Werror 
 
-CFLAGS=-g -fPIC $(DEBUG_FLAGS) -O2 -mavx
+CFLAGS=-g -fPIC $(DEBUG_FLAGS) -O3 -mavx
 
 OBJ=core.o simple.o
 
