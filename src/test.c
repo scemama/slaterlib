@@ -5,28 +5,6 @@
 #define MAXTESTS 1000
 
 
-int test_trailz()
-{
-  unsigned int k;
-  determinant_t x;
-  int test_ok;
-
-  test_ok = 0;
-  for (k=0 ; k<NORB_PER_INT ; k++)
-  {
-    x = ((determinant_t) 1) << k;
-    if ( trailz_simple(x) != k ) test_ok = -1;
-    if ( trailz_simple(x) != trailz(x) ) {
-      test_ok = -1;
-      errx(1,"test_trailz: %llu  %u  %u\n", x, trailz_simple(x), popcnt(x));
-    }
-  }
-  x = ((determinant_t) 0);
-  if ( trailz_simple(x) != NONE ) test_ok = -1;
-  return test_ok;
-}
-
-
 
 
 unsigned int random_int()
@@ -35,6 +13,7 @@ unsigned int random_int()
   result = (rand() & (NORB_PER_INT-1));
   return result;
 }
+
 
 determinant_t random_det(orbital_t N_orb)
 {
@@ -50,6 +29,7 @@ determinant_t random_det(orbital_t N_orb)
   }
   return result;
 }
+
 
 unsigned int random_single_exc(bucket_t N_int,
                     determinant_t d1[N_int],
@@ -90,6 +70,7 @@ unsigned int random_single_exc(bucket_t N_int,
   return nperm;
 }
 
+
 unsigned int random_double_exc(bucket_t N_int,
                     determinant_t d1[N_int],
                     determinant_t d2[N_int])
@@ -113,59 +94,60 @@ unsigned int random_double_exc(bucket_t N_int,
 }
 
 
-int test_popcnt()
+/* Tests */
+
+int test_trailz()
 {
   unsigned int k;
   determinant_t x;
   int test_ok;
 
   test_ok = 0;
-  for (k=0 ; k<MAXTESTS ; k++)
+  for (k=0 ; k<NORB_PER_INT ; k++)
+  {
+    x = ((determinant_t) 1) << k;
+    if ( trailz_simple(x) != k ) test_ok = -1;
+    if ( trailz_simple(x) != trailz(x) ) {
+      test_ok = -1;
+      err(1,"test_trailz: %llu  %u  %u\n", x, trailz_simple(x), popcnt(x));
+    }
+  }
+  x = ((determinant_t) 0);
+  if ( trailz_simple(x) != NONE ) test_ok = -1;
+  return test_ok;
+}
+
+
+int test_popcnt()
+{
+  unsigned int itest;
+  determinant_t x;
+  int test_ok;
+
+  test_ok = 0;
+  for (itest=0 ; itest<MAXTESTS ; itest++)
   {
     x = random_det( (orbital_t) (random_int()));
     if ( popcnt_simple(x) != popcnt(x) ) {
       test_ok = -1;
-      errx(1,"test_popcnt: %llu  %u  %u\n", x, popcnt_simple(x), popcnt(x));
+      itest = MAXTESTS;
+      err(1,"test_popcnt: %llu  %u  %u\n", x, popcnt_simple(x), popcnt(x));
     }
   }
   return test_ok;
 }
 
 
-
-
-
-int main(int agrc, char** argv)
+int test_exc_degree(bucket_t N_int)
 {
-  bucket_t        N_int = (bucket_t) 4;
+  unsigned int    itest;
+  orbital_t       r;
+  int             i,j,k,l,m;
   determinant_t   d1[N_int];
   determinant_t   d2[N_int];
-  exc_number_t    exc, exc2;
-  orbital_t       list[N_int*NORB_PER_INT];
-  orbital_t       holes[2], holes2[2];
-  orbital_t       particles[2], particles2[2];
-  orbital_t       iorb, N_orb;
-  int             i,j,k,l,m;
-  orbital_t       r;
-  unsigned int    itest;
-//  unsigned int    nperm;
-   
-  printf("NORB_PER_INT_SHIFT: %d\n", (int) NORB_PER_INT_SHIFT);
-  printf("NORB_PER_INT      : %d\n", (int) NORB_PER_INT);
+  int             test_ok;
 
-  test_trailz();
-  printf("Trailz OK\n");
-
-  test_popcnt();
-  printf("Popcnt OK\n");
-/*
-  for (i=0 ; i<10 ; i++)
-  {
-    d1[0] = random_det(12);
-  }
-*/
-
-  /* Test exc_degree */
+  test_ok = 0;
   for (itest=0 ; itest<MAXTESTS ; itest++)
   {
     /* Excitation on one int */
@@ -183,7 +165,9 @@ int main(int agrc, char** argv)
         {
           debug_det(N_int, d1);
           debug_det(N_int, d2);
-          errx(1,"Failure in exc_degree on same int : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
+          test_ok = -1;
+          itest = MAXTESTS;
+          err(1,"Failure in exc_degree on same int : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
         }
       }
     }
@@ -211,7 +195,9 @@ int main(int agrc, char** argv)
             {
               debug_det(N_int, d1);
               debug_det(N_int, d2);
-              errx(1,"Failure in exc_degree on 2 ints : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
+              test_ok = -1;
+              itest = MAXTESTS;
+              err(1,"Failure in exc_degree on 2 ints : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
             }
           }
         }
@@ -233,7 +219,9 @@ int main(int agrc, char** argv)
         {
           debug_det(N_int, d1);
           debug_det(N_int, d2);
-          errx(1,"Failure in exc_degree on 3 ints : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
+          test_ok = -1;
+          itest = MAXTESTS;
+          err(1,"Failure in exc_degree on 3 ints : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
         }
       }
     }
@@ -251,20 +239,33 @@ int main(int agrc, char** argv)
       {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in exc_degree on 3 ints : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in exc_degree on 3 ints : %d != %d", (int) exc_degree(N_int, d1, d2), (int) exc_degree_simple(N_int, d1, d2));
       }
     }
-
   }
-  printf("exc_degree OK\n");
+  return test_ok;
+}
 
-    
-  /* Test to/of_list */
+
+int test_to_of_list(bucket_t N_int)
+{
+  unsigned int    itest;
+  orbital_t       r;
+  determinant_t   d1[N_int];
+  determinant_t   d2[N_int];
+  orbital_t       N_orb;
+  orbital_t       list[N_int*NORB_PER_INT];
+  bucket_t l;
+  int test_ok;
+
+  test_ok = 0;
   for (itest=0 ; itest<MAXTESTS ; itest++)
   {
     r = random_int();
     r = r < 4 ? 4 : r-2;
-    for (l=0 ; l<N_int ; l++)
+    for (l=(bucket_t) 0 ; l<N_int ; l++)
       d1[l] = random_det(r);
     N_orb = to_orbital_list(N_int, d1, list);
     of_orbital_list(N_int, N_orb, d2, list);
@@ -272,19 +273,33 @@ int main(int agrc, char** argv)
     {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in to/of_list : %d != 0", (int) exc_degree(N_int, d1, d2) );
+        itest = MAXTESTS;
+        test_ok = -1;
+        err(1,"Failure in to/of_list : %d != 0", (int) exc_degree(N_int, d1, d2) );
     }
   }
-  printf("to/of_list OK\n");
+  return test_ok;
+}
 
 
+int test_get_holes_particles(bucket_t N_int)
+{
+  int test_ok;
+  unsigned int    itest;
+  determinant_t   d1[N_int];
+  determinant_t   d2[N_int];
+  orbital_t       r;
+  bucket_t        l;
+  exc_number_t    exc, exc2;
+  orbital_t       holes[2], holes2[2];
+  orbital_t       particles[2], particles2[2];
 
-  /* Test get_holes/particles */
+  test_ok = 0;
   for (itest=0 ; itest<MAXTESTS ; itest++)
   {
     r = random_int();
     r = r < 4 ? 4 : r-2;
-    for (l=0 ; l<N_int ; l++)
+    for (l=(bucket_t)0 ; l<N_int ; l++)
       d1[l] = random_det(r);
 
 
@@ -295,28 +310,36 @@ int main(int agrc, char** argv)
     {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in random_single_exc: %d", (int) exc_degree(N_int, d1, d2) );
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in random_single_exc: %d", (int) exc_degree(N_int, d1, d2) );
     }
     exc2 = get_holes_simple(N_int, d1, d2, holes2);
     if ( (exc2 != exc) || (holes[0] != holes2[0]) )
     {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in get_holes: %d %d", (int) holes[0], (int) holes2[0]);
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in get_holes: %d %d", (int) holes[0], (int) holes2[0]);
     }
     exc2 = get_particles(N_int, d1, d2, particles);
     if (exc2 != exc)
     {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in get_particles: %d", (int) exc_degree(N_int, d1, d2) );
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in get_particles: %d", (int) exc_degree(N_int, d1, d2) );
     }
     exc2 = get_particles_simple(N_int, d1, d2, particles2);
     if ( (exc2 != exc) || (particles[0] != particles2[0]) )
     {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in get_particles: %d, %d=%d", (int) exc, (int) particles[0], (int) particles2[0]);
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in get_particles: %d, %d=%d", (int) exc, (int) particles[0], (int) particles2[0]);
     }
 
 
@@ -329,14 +352,18 @@ int main(int agrc, char** argv)
     {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in random_double_exc: %d", (int) exc_degree(N_int, d1, d2) );
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in random_double_exc: %d", (int) exc_degree(N_int, d1, d2) );
     }
     exc2 = get_holes_simple(N_int, d1, d2, holes2);
     if ( (exc2 != exc) || (holes[0] != holes2[0]) || (holes[1] != holes2[1]) ) 
     {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in get_holes: %d, %d=%d, %d=%d", (int) exc2, 
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in get_holes: %d, %d=%d, %d=%d", (int) exc2, 
           (int) holes[0], (int) holes2[0], (int) holes[1], (int) holes2[1]);
     }
     exc2 = get_particles(N_int, d1, d2, particles);
@@ -344,52 +371,50 @@ int main(int agrc, char** argv)
     {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in get_particles: %d", (int) exc_degree(N_int, d1, d2));
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in get_particles: %d", (int) exc_degree(N_int, d1, d2));
     }
     exc2 = get_particles_simple(N_int, d1, d2, particles2);
     if ( (exc2 != exc) || (particles[0] != particles2[0]) || (particles[1] != particles2[1]) ) 
     {
         debug_det(N_int, d1);
         debug_det(N_int, d2);
-        errx(1,"Failure in get_particles: %d,  %d=%d %d=%d", (int) exc2, 
+        test_ok = -1;
+        itest = MAXTESTS;
+        err(1,"Failure in get_particles: %d,  %d=%d %d=%d", (int) exc2, 
           (int) particles[0], (int) particles2[0], (int) particles[1], (int) particles2[1]);
     }
   }
-  printf("get_holes/particles OK\n");
+  return test_ok;
+}
 
+/* Main */
 
+int main(int agrc, char** argv)
+{
+  bucket_t        N_int = 4;
+  int             test_ok;
 
+  test_ok = 0;
+ 
+  printf("NORB_PER_INT_SHIFT: %d\n", (int) NORB_PER_INT_SHIFT);
+  printf("NORB_PER_INT      : %d\n", (int) NORB_PER_INT);
 
-   printf("Number of holes : %d\n", (int) exc);
-   for (iorb=(orbital_t)0 ; iorb < exc ; iorb++)
-      printf("%d ", (int) holes[iorb]);
-   printf("\n");
+#define TEST(X,Y) \
+  if (test_##X (Y) != 0) { \
+    printf("\t\t[ Failed ]\n"); \
+    test_ok = -1; } \
+  else \
+    printf("\t\t[   OK   ]\n")
 
-   exc = get_particles(N_int, d1, d2, particles);
-   printf("Number of particles: %d\n", (int) exc);
-   for (iorb=(orbital_t)0 ; iorb < exc ; iorb++)
-      printf("%d ", (int) particles[iorb]);
-   printf("\n");
+  printf("Trailz                "); TEST(trailz,);
+  printf("Popcnt                "); TEST(popcnt,);
+  printf("exc_degree            "); TEST(exc_degree,N_int);
+  printf("to/of_list            "); TEST(to_of_list,N_int);
+  printf("get_holes/particles   "); TEST(get_holes_particles,N_int);
 
-   exc = get_holes_particles(N_int, d1, d2, holes, particles);
-   printf("Number of holes/particles : %d\n", (int) exc);
-   for (iorb=(orbital_t)0 ; iorb < exc ; iorb++)
-      printf("%d ", (int) holes[iorb]);
-   printf("\n");
-   for (iorb=(orbital_t)0 ; iorb < exc ; iorb++)
-      printf("%d ", (int) particles[iorb]);
-   printf("\n");
-
-   exc = get_holes_particles(N_int, d1, d2, holes, particles);
-   printf("Number of holes/particles : %d\n", (int) exc);
-   for (iorb=(orbital_t)0 ; iorb < exc ; iorb++)
-      printf("%d ", (int) holes[iorb]);
-   printf("\n");
-   for (iorb=(orbital_t)0 ; iorb < exc ; iorb++)
-      printf("%d ", (int) particles[iorb]);
-   printf("\n");
-
-   return 0;
+  return test_ok;
 }
 
 
