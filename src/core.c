@@ -104,15 +104,18 @@ exc_number_t get_holes(bucket_t N_int,
   for (i=(bucket_t) 0 ; i<N_int ; i++)
   {
       tmp = (d1[i]^d2[i]) & d1[i];
-
-/*@   loop invariant (0 < pos <= NORB_PER_INT); */
-      while (tmp != (determinant_t) 0) 
+      if (d1[i] != d2[i])
       {
-          pos = trailz(tmp);
-          holes[k] = ( (orbital_t) pos) + shift;
-          tmp ^= ( ((determinant_t) 1) << pos);
-          k++;
-/*@       assert (0 < k <= 2); */
+
+/*@     loop invariant (0 < pos <= NORB_PER_INT); */
+        while (tmp != (determinant_t) 0) 
+        {
+            pos = trailz(tmp);
+            holes[k] = ( (orbital_t) pos) + shift;
+            tmp ^= ( ((determinant_t) 1) << pos);
+            k++;
+/*@         assert (0 < k <= 2); */
+        }
       }
       shift += NORB_PER_INT;
   }
@@ -163,16 +166,19 @@ exc_number_t get_particles(bucket_t N_int,
 /*@ loop invariant (ORBITAL_SHIFT <= shift < NORB_PER_INT*N_int+ORBITAL_SHIFT) ; */
   for (i=(bucket_t) 0 ; i<N_int ; i++)
   {
-      tmp = (d1[i]^d2[i]) & d2[i];
-
-/*@   loop invariant (0 < pos <= NORB_PER_INT); */
-      while (tmp != (determinant_t) 0) 
+      if (d1[i] != d2[i])
       {
-          pos = trailz(tmp);
-          particles[k] = ( (orbital_t) pos) + shift;
-          tmp ^= ( ((determinant_t) 1) << pos);
-          k++;
-/*@       assert (0 < k <= 2); */
+        tmp = (d1[i]^d2[i]) & d2[i];
+       
+/*@     loop invariant (0 < pos <= NORB_PER_INT); */
+        while (tmp != (determinant_t) 0) 
+        {
+            pos = trailz(tmp);
+            particles[k] = ( (orbital_t) pos) + shift;
+            tmp ^= ( ((determinant_t) 1) << pos);
+            k++;
+/*@         assert (0 < k <= 2); */
+        }
       }
       shift += NORB_PER_INT;
   }
@@ -230,30 +236,33 @@ exc_number_t get_holes_particles(bucket_t N_int,
 /*@ loop invariant (ORBITAL_SHIFT <= shift < NORB_PER_INT*N_int+ORBITAL_SHIFT) ; */
   for (i=(bucket_t) 0 ; i<N_int ; i++)
   {
-      tmp_xor = (d1[i]^d2[i]);
-
-      tmp = tmp_xor & d1[i];
-/*@   loop invariant (0 < pos <= NORB_PER_INT); */
-      while (tmp != (determinant_t) 0) 
+      if (d1[i] != d2[i])
       {
-          pos = trailz(tmp);
-          holes[k_holes] = (orbital_t) (pos + shift);
-          tmp ^= ( ((determinant_t) 1) << pos);
-          k_holes++;
-/*@       assert (0 < k_holes <= 2); */
-      }
 
-      tmp = tmp_xor & d2[i];
-/*@   loop invariant (0 < pos <= NORB_PER_INT); */
-      while (tmp != (determinant_t) 0) 
-      {
-          pos = trailz(tmp);
-          particles[k_particles] = (orbital_t) (pos + shift);
-          tmp ^= ( ((determinant_t) 1) << pos);
-          k_particles++;
-/*@       assert (0 < k_particles <= 2); */
+        tmp_xor = (d1[i]^d2[i]);
+        tmp = tmp_xor & d1[i];
+/*@     loop invariant (0 < pos <= NORB_PER_INT); */
+        while (tmp != (determinant_t) 0) 
+        {
+            pos = trailz(tmp);
+            holes[k_holes] = (orbital_t) (pos + shift);
+            tmp ^= ( ((determinant_t) 1) << pos);
+            k_holes++;
+/*@         assert (0 < k_holes <= 2); */
+        }
+       
+        tmp = tmp_xor & d2[i];
+/*@     loop invariant (0 < pos <= NORB_PER_INT); */
+        while (tmp != (determinant_t) 0) 
+        {
+            pos = trailz(tmp);
+            particles[k_particles] = (orbital_t) (pos + shift);
+            tmp ^= ( ((determinant_t) 1) << pos);
+            k_particles++;
+/*@         assert (0 < k_particles <= 2); */
+        }
+       
       }
-
       shift += NORB_PER_INT;
   }
   /*@ assert k_particles == k_holes; */
@@ -285,7 +294,6 @@ unsigned int get_nperm_single(bucket_t N_int,
   bucket_t  j,k,l;
   unsigned int m,n;
   unsigned int nperm;
-  determinant_t mask[2];
 
   high = ( (*particle > *hole) ? *particle : *hole    ) - ORBITAL_SHIFT;
   low  = ( (*particle > *hole) ? *hole     : *particle) - ORBITAL_SHIFT + 1;
@@ -306,13 +314,14 @@ unsigned int get_nperm_single(bucket_t N_int,
 /*@ assert (j<=k) ; */
 
   if (j==k) {
-    mask[0] = ( ( ((determinant_t)1) << m) - (determinant_t)1)  &
-              ( ~(((determinant_t)1) << n) + ((determinant_t)1) );
-    nperm = popcnt( d1[j] & mask[0] ); 
+    nperm = popcnt( d1[j] & (
+              ( ( ((determinant_t)1) << m) - (determinant_t)1)  &
+              ( ~(((determinant_t)1) << n) + ((determinant_t)1) ) ));
   } else {
-    mask[1] = ( ((determinant_t)1) << m) - (determinant_t)1 ;
-    mask[0] = ~((determinant_t)0) & ( ~(((determinant_t)1) << n) + ((determinant_t)1) );
-    nperm = popcnt( d1[j] & mask[0] ) + popcnt( d1[k] & mask[1] );
+    nperm = popcnt( d1[j] &
+          ( ~((determinant_t)0) & ( ~(((determinant_t)1) << n) + ((determinant_t)1) ) ) )
+          + popcnt( d1[k] &
+          ( ( ((determinant_t)1) << m) - (determinant_t)1 ) );
     for (l=j+1 ; l<k ; l++)
       nperm += popcnt( d1[l] ); 
  }
@@ -340,12 +349,17 @@ unsigned int get_nperm_double(bucket_t N_int,
                  orbital_t particle[2])
 {
   unsigned int nperm;
+  unsigned int a,b,c,d;
 
   nperm  = get_nperm_single(N_int, d1, d2, &hole[0], &particle[0]);
   nperm += get_nperm_single(N_int, d1, d2, &hole[1], &particle[1]);
 
-  if ( (hole[1] < particle[0]) || (hole[0] > particle[1]) )
-    nperm++;
+  a = hole[0] < particle[0] ? hole[0] : particle[0];
+  b = hole[0] < particle[0] ? particle[0] : hole[0];
+  c = hole[1] < particle[1] ? hole[1] : particle[1];
+  d = hole[1] < particle[1] ? particle[1] : hole[1];
+
+  if ( (a<c) && (c<b) && (b<d) ) nperm++;
 
   return nperm;
 }
