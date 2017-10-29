@@ -1,9 +1,10 @@
 #include "slater_condon.h"
+#include "slater_condon_simple.h"
+#include "debug.h"
 #include <string.h>
 #include <assert.h>
 
-#define MAXTESTS 1000000
-
+#define MAXTESTS 10000
 
 
 

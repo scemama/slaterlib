@@ -1,4 +1,5 @@
 #include "slater_condon.h"
+#include "debug.h"
 
 /* Naive implementation of trailz
  */
