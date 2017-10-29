@@ -20,7 +20,10 @@ exc_number_t exc_degree(bucket_t N_int,
   for (i=(bucket_t) 0 ; i<N_int ; i++) {
     result += (exc_number_t) ( popcnt(d1[i]^d2[i]) );
   }
-/*@ assert result % 2 == 0; */
+/*@ assert result % 2 == 0; 
+    assert result >= 0; 
+    assert result < (N_int*NORB_PER_INT);
+*/
 
   return (result >> 1);
 }
@@ -156,7 +159,7 @@ exc_number_t get_particles(bucket_t N_int,
 
 
 
-/* Returns the number of holes or particles in the d1 -> d2 excitation.
+/* Returns the number of holes (or particles) in the d1 -> d2 excitation.
  * `holes` and `particles` are lists of orbital indices.
  */
 /*@ 
@@ -403,4 +406,42 @@ void of_orbital_list(bucket_t N_int,
 }
 
 
+excitation_operator_t exc_op_of_det_pair(bucket_t N_int,
+          determinant_t d1[N_int], determinant_t d2[N_int])
+{
+  unsigned int nperm;
+  excitation_operator_t result;
+  result.exc_degree = get_holes_particles(N_int,d1,d2,
+     result.holes, result.particles);
+  /*@ assert (result.exc_degree == 0
+           || result.exc_degree == 1
+           || result.exc_degree == 2); */
+  nperm = phase_p;
+  switch (result.exc_degree)
+  {
+    case (2):
+      nperm = get_nperm_double(N_int,d1,d2,result.holes,result.particles);
+      break;
+    case (1):
+      nperm = get_nperm_single(N_int,d1,d2,result.holes,result.particles);
+      break;
+  }
+  result.phase = ((unsigned int) 1) & nperm;
+  /*@ assert ( (nperm % 1 == 0) ? (result.phase == phase_p) : (result.phase == phase_m) )
+  */
+  return result;
+}
 
+
+/*
+void decode_excitation(excitation_operator_t exc,
+   degree, &h1, &p1, &h2, &p2, &s1, &s2)
+{
+  switch (degree)
+  {
+    case (2):
+    case (1):
+    case (0):
+  }
+}
+*/

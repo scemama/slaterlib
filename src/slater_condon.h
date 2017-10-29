@@ -18,7 +18,17 @@ typedef unsigned int         exc_number_t;
 typedef unsigned int         orbital_t;
 
 typedef enum { alpha=0, beta=1, alpha_beta=2 } spin_t;
+typedef enum { phase_p=0, phase_m=1 } phase_t;
+/* static double phase_double[2] = { 1., -1. };
+ */
 
+typedef struct {
+  orbital_t    holes[2];
+  orbital_t    particles[2];
+  exc_number_t exc_degree;
+  phase_t      phase;
+} excitation_operator_t;
+  
 
 /* Popcount and trailz */
 #if INT_SIZE == 64
