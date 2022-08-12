@@ -11,18 +11,11 @@ AC_LANG(C)
 
 AC_PROG_FC(FC)
 
+PKG_PROG_PKG_CONFIG([])
+PKG_INSTALLDIR([])
+
 # Generate config
 AC_CONFIG_HEADERS([config.h])
-
-VERSION_MAJOR=`echo ${PACKAGE_VERSION} | cut -d. -f1`
-VERSION_MINOR=`echo ${PACKAGE_VERSION} | cut -d. -f2`
-VERSION_PATCH=`echo ${PACKAGE_VERSION} | cut -d. -f3 | cut -d- -f1`
-AC_DEFINE_UNQUOTED([QMCKL_VERSION_MAJOR], [$VERSION_MAJOR], [major version])
-AC_DEFINE_UNQUOTED([QMCKL_VERSION_MINOR], [$VERSION_MINOR], [minor version])
-AC_DEFINE_UNQUOTED([QMCKL_VERSION_PATCH], [$VERSION_PATCH], [patch version])
-AC_SUBST([VERSION_MAJOR])
-AC_SUBST([VERSION_MINOR])
-AC_SUBST([VERSION_PATCH])
 
 AC_SUBST(CFLAGS)
 AC_SUBST(AM_CFLAGS)
@@ -30,7 +23,8 @@ AC_SUBST(AM_CPPFLAGS)
 AC_SUBST(AM_LDFLAGS)
 
 # Generate Makefile from Makefile.in
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+                 pkgconfig/slaterlib.pc])
 
 # Done
 AC_OUTPUT
