@@ -14,4 +14,4 @@ lib_libslater_la_SOURCES = $(src_main_c) $(src_main_h)
 lib_libslater_la_CFLAGS = $(AM_CFLAGS)
 lib_libslater_la_CPPFLAGS = "-I${top_srcdir}/src"
 lib_libslater_la_CPPFLAGS += "-I${top_srcdir}/include"
-
+lib_libslater_la_LDFLAGS = -version-info 0:0:0
