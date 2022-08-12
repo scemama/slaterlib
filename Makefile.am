@@ -5,6 +5,9 @@ VERSION_MAJOR   = @VERSION_MAJOR@
 VERSION_MINOR   = @VERSION_MINOR@
 VERSION_PATCH   = @VERSION_PATCH@
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = pkgconfig/slaterlib.pc
+
 src_main_c = src/core.c src/debug.c src/simple.c src/test.c
 src_main_h = src/slater_condon.h src/slater_condon_simple.h src/debug.h
 
