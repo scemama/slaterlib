@@ -4,4 +4,4 @@ aclocal
 autoconf
 autoheader
 automake --add-missing
-autoreconf -i -Wall
+autoreconf -i -Wall --no-recursive
