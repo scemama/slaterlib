@@ -1,52 +1,50 @@
-# Prerequisites
-*.d
-
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
-
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
 *.la
 *.lo
+.deps/
+.dirstamp
+.libs
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache/
+config.guess
+config.log
+config.status
+config.sub
+configure
+generated.mk
+.vfcwrapper.o
+libtool
+m4/libtool.m4
+m4/ltoptions.m4
+m4/ltsugar.m4
+m4/ltversion.m4
+m4/lt~obsolete.m4
+qmckl-*.tar.gz
+qmckl.mod
+qmckl_probes_f.mod
+qmckl.pc
+stamp-h1
+tools/compile
+tools/depcomp
+tools/install-sh
+tools/libtool
+tools/ltmain.sh
+tools/missing
+tools/test-driver
+ar-lib
+compile
+config.h
+config.h.in
+depcomp
+install-sh
+ltmain.sh
+m4/
+missing
+pkgconfig/slaterlib.pc
+src/lib_libslater_la-core.o
+src/lib_libslater_la-debug.o
+src/lib_libslater_la-simple.o
+src/lib_libslater_la-test.o
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
 
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
